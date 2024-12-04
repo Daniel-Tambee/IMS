@@ -1,0 +1,126 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Business {
+  id             String     @id @default(uuid())
+  Business_name  String
+  Phone_number   String
+  Image          String
+  Location_name  String
+  State          String
+  Address_Line_1 String
+  customers      Customer[]
+  staff          Staff[]
+  inventory      Inventory  @relation(fields: [inventoryId], references: [id])
+  inventoryId    String     @unique
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+model Product {
+  id             String     @id @default(uuid())
+  Image          String
+  Product_Name   String
+  Price          Float
+  Description    String
+  Reduced_Price  Float
+  Code           String
+  Sell_By        Staff      @relation(fields: [staffId], references: [id])
+  Category       String
+  staffId        String
+  is_Highlighted Boolean    @default(false)
+  Inventory      Inventory? @relation(fields: [inventoryId], references: [id])
+  inventoryId    String?
+  category       Category   @relation(fields: [categoryId], references: [id])
+  categoryId     String
+  Stock          Int        @default(1)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  Order          Order[]
+}
+
+model Customer {
+  id         String    @id @default(uuid())
+  Business   Business? @relation(fields: [businessId], references: [id])
+  businessId String?
+  payLater   Boolean   @default(false)
+  Orders     Order[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model Staff {
+  id            String    @id @default(uuid())
+  Name          String
+  Phone_Number  String
+  Email_Address String
+  Role          StaffRole @default(Biller)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  Business      Business? @relation(fields: [businessId], references: [id])
+  businessId    String?
+  Product       Product[]
+  device        Device    @relation(fields: [deviceId], references: [id])
+  deviceId      String
+}
+
+model Order {
+  id          String    @id @default(uuid())
+  product     Product   @relation(fields: [productId], references: [id])
+  productId   String
+  Image       String
+  Price       Float
+  Description String
+  Customer    Customer? @relation(fields: [customerId], references: [id])
+  customerId  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Device {
+  id          String   @id @default(uuid())
+  Device_Name String
+  Device_ID   String
+  is_Active   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  Staff       Staff[]
+}
+
+model Inventory {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Business  Business?
+  products  Product[]
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  name      String
+  Product   Product[]
+}
+
+enum StaffRole {
+  Super_Admin
+  Manager
+  Biller
+  Cashier
+  Store_Manager
+  Supplier
+  Delivery
+}
